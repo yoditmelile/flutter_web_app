@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter_web_app/Service/Auth_Service.dart';
 import 'package:flutter_web_app/pages/HomePage.dart';
+import 'package:flutter_web_app/pages/PhoneAuthPage.dart';
 import 'SignInPage.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -46,7 +47,10 @@ class _SignUpPageState extends State<SignUpPage> {
             }),
             // ignore: prefer_const_constructors
             SizedBox(height: 15),
-            buttonItem("assets/phone.svg", "Use your phone number", 20, () {}),
+            buttonItem("assets/phone.svg", "Use your phone number", 20, () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (builder) => PhoneAuthPage()));
+            }),
             // ignore: prefer_const_constructors
             SizedBox(height: 25),
             // ignore: prefer_const_constructors
