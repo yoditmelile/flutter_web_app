@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_web_app/Custom/TodoCard.dart';
 import 'package:flutter_web_app/Service/Auth_Service.dart';
 import 'package:flutter_web_app/pages/AddTodo.dart';
+import 'package:flutter_web_app/pages/ProfilePage.dart';
 import 'package:flutter_web_app/pages/SignUpPage.dart';
 import 'package:flutter_web_app/pages/view_data.dart';
 
@@ -20,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   AuthClass authClass = AuthClass();
   final Stream<QuerySnapshot> _stream =
       FirebaseFirestore.instance.collection("Todo").snapshots();
+  List<Select> selected = [];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,12 +46,33 @@ class _HomePageState extends State<HomePage> {
               alignment: Alignment.centerLeft,
               child: Padding(
                 padding: const EdgeInsets.only(left: 22),
-                child: Text(
-                  "Monday 21",
-                  style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Monday 21",
+                      style: TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        var instance =
+                            FirebaseFirestore.instance.collection("Todo");
+                        for (var i = 0; i < selected.length; i++) {
+                          if (selected[i].checkvalue) {
+                            instance.doc(selected[i].id).delete();
+                          }
+                        }
+                      },
+                      icon: Icon(
+                        Icons.delete,
+                        color: Colors.red,
+                        size: 28,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -92,10 +115,16 @@ class _HomePageState extends State<HomePage> {
               label: '',
             ),
             BottomNavigationBarItem(
-              icon: Icon(
-                Icons.settings,
-                size: 32,
-                color: Colors.white,
+              icon: InkWell(
+                onTap: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (builder) => Profile()));
+                },
+                child: Icon(
+                  Icons.settings,
+                  size: 32,
+                  color: Colors.white,
+                ),
               ),
               label: '',
             ),
@@ -127,6 +156,8 @@ class _HomePageState extends State<HomePage> {
                         iconData = Icons.today_outlined;
                         iconColor = const Color.fromARGB(255, 5, 65, 7);
                     }
+                    selected.add(Select(
+                        id: snapshot.data!.docs[index].id, checkvalue: false));
                     return InkWell(
                       onTap: () {
                         Navigator.push(
@@ -144,20 +175,24 @@ class _HomePageState extends State<HomePage> {
                           iconData: iconData,
                           iconColor: iconColor,
                           time: "10 AM",
-                          check: true,
+                          index: index,
+                          onChange: onChange,
+                          check: selected[index].checkvalue,
                           iconBgColor: Colors.white),
                     );
                   });
             }));
   }
+
+  void onChange(int index) {
+    setState(() {
+      selected[index].checkvalue = !selected[index].checkvalue;
+    });
+  }
 }
 
-// IconButton(
-//             onPressed: () async {
-//               await authClass.logOut();
-//               Navigator.pushAndRemoveUntil(
-//                   context,
-//                   MaterialPageRoute(builder: (builder) => SignUpPage()),
-//                   (route) => false);
-//             },
-//             icon: Icon(Icons.logout_rounded)),
+class Select {
+  late String id;
+  bool checkvalue = false;
+  Select({required this.id, required this.checkvalue});
+}

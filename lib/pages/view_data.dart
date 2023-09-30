@@ -65,17 +65,37 @@ class _ViewDataState extends State<ViewData> {
                     size: 28,
                   ),
                 ),
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      edit = !edit;
-                    });
-                  },
-                  icon: Icon(
-                    Icons.edit,
-                    color: edit ? Colors.green : Colors.white,
-                    size: 28,
-                  ),
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          edit = !edit;
+                        });
+                      },
+                      icon: Icon(
+                        Icons.edit,
+                        color: edit ? Colors.green : Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        FirebaseFirestore.instance
+                            .collection("Todo")
+                            .doc(widget.id)
+                            .delete()
+                            .then((value) {
+                          Navigator.pop(context);
+                        });
+                      },
+                      icon: Icon(
+                        Icons.delete,
+                        color: Colors.red,
+                        size: 28,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
