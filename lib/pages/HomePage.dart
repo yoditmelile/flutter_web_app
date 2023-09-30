@@ -1,3 +1,7 @@
+// import 'dart:html';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web_app/Custom/TodoCard.dart';
 import 'package:flutter_web_app/Service/Auth_Service.dart';
@@ -13,127 +17,126 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   AuthClass authClass = AuthClass();
+  final Stream<QuerySnapshot> _stream =
+      FirebaseFirestore.instance.collection("Todo").snapshots();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black87,
-      appBar: AppBar(
         backgroundColor: Colors.black87,
-        title: Text(
-          "Today's Schedule",
-          style: TextStyle(
-              fontSize: 34, fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        actions: [
-          CircleAvatar(
-            backgroundImage: AssetImage("assets/mo4.jpg"),
+        appBar: AppBar(
+          backgroundColor: Colors.black87,
+          title: Text(
+            "Today's Schedule",
+            style: TextStyle(
+                fontSize: 34, fontWeight: FontWeight.bold, color: Colors.white),
           ),
-          SizedBox(
-            width: 25,
-          ),
-        ],
-        bottom: PreferredSize(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 22),
-              child: Text(
-                "Monday 21",
-                style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white),
-              ),
+          actions: [
+            CircleAvatar(
+              backgroundImage: AssetImage("assets/mo4.jpg"),
             ),
-          ),
-          preferredSize: Size.fromHeight(35),
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.black87,
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.home,
-              size: 32,
-              color: Colors.white,
+            SizedBox(
+              width: 25,
             ),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: InkWell(
-              onTap: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (builder) => AddTodoPage()));
-              },
-              child: Container(
-                height: 52,
-                width: 52,
-                decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(colors: [
-                      Colors.indigoAccent,
-                      Colors.purple,
-                    ])),
-                child: Icon(
-                  Icons.add,
-                  size: 32,
-                  color: Colors.white,
+          ],
+          bottom: PreferredSize(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 22),
+                child: Text(
+                  "Monday 21",
+                  style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white),
                 ),
               ),
             ),
-            label: '',
+            preferredSize: Size.fromHeight(35),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.settings,
-              size: 32,
-              color: Colors.white,
-            ),
-            label: '',
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Container(
-          height: MediaQuery.of(context).size.height,
-          width: MediaQuery.of(context).size.width,
-          padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-          child: Column(children: [
-            TodoCard(
-              title: "Wake up broo",
-              check: true,
-              iconBgColor: Colors.white,
-              iconColor: Colors.red,
-              iconData: Icons.alarm,
-              time: "10PM",
-            ),
-            SizedBox(
-              height: 20,
-            ),
-            TodoCard(
-              title: "do laundary",
-              check: false,
-              iconBgColor: Colors.white,
-              iconColor: Colors.teal,
-              iconData: Icons.wash,
-              time: "12PM",
-            ),
-            SizedBox(
-              height: 20,
-            ),
-            TodoCard(
-              title: "meet friends  ",
-              check: false,
-              iconBgColor: Colors.white,
-              iconColor: Colors.purple,
-              iconData: Icons.people,
-              time: "15PM",
-            ),
-          ]),
         ),
-      ),
-    );
+        bottomNavigationBar: BottomNavigationBar(
+          backgroundColor: Colors.black87,
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.home,
+                size: 32,
+                color: Colors.white,
+              ),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: InkWell(
+                onTap: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (builder) => AddTodoPage()));
+                },
+                child: Container(
+                  height: 52,
+                  width: 52,
+                  decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(colors: [
+                        Colors.indigoAccent,
+                        Colors.purple,
+                      ])),
+                  child: Icon(
+                    Icons.add,
+                    size: 32,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.settings,
+                size: 32,
+                color: Colors.white,
+              ),
+              label: '',
+            ),
+          ],
+        ),
+        body: StreamBuilder(
+            stream: _stream,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return Center(child: CircularProgressIndicator());
+              }
+              return ListView.builder(
+                  itemCount: snapshot.data?.docs.length,
+                  itemBuilder: (context, index) {
+                    IconData iconData;
+                    Color iconColor;
+                    Map<String, dynamic> document = snapshot.data?.docs[index]
+                        .data() as Map<String, dynamic>;
+                    switch (document["category"]) {
+                      case "Food":
+                        iconData = Icons.food_bank_outlined;
+                        iconColor = Color.fromARGB(255, 251, 20, 20);
+                        break;
+                      case "work":
+                        iconData = Icons.run_circle_outlined;
+                        iconColor = Color.fromARGB(255, 24, 20, 251);
+                        break;
+                      default:
+                        iconData = Icons.today_outlined;
+                        iconColor = const Color.fromARGB(255, 5, 65, 7);
+                    }
+                    return TodoCard(
+                        title: document["title"] == null
+                            ? "Supp baby"
+                            : document["title"],
+                        iconData: iconData,
+                        iconColor: iconColor,
+                        time: "10 AM",
+                        check: true,
+                        iconBgColor: Colors.white);
+                  });
+            }));
   }
 }
 
