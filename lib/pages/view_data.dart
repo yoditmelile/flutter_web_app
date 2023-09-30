@@ -5,18 +5,35 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_web_app/pages/HomePage.dart';
 
-class AddTodoPage extends StatefulWidget {
-  const AddTodoPage({super.key});
+class ViewData extends StatefulWidget {
+  const ViewData({super.key, required this.document, required this.id});
+  final Map<String, dynamic> document;
+  final String id;
 
   @override
-  State<AddTodoPage> createState() => _AddTodoPageState();
+  State<ViewData> createState() => _ViewDataState();
 }
 
-class _AddTodoPageState extends State<AddTodoPage> {
-  TextEditingController _titleController = TextEditingController();
-  TextEditingController _descriptionController = TextEditingController();
-  String type = "";
-  String category = "";
+class _ViewDataState extends State<ViewData> {
+  late TextEditingController _titleController;
+  late TextEditingController _descriptionController;
+  late String type;
+  late String category;
+  bool edit = false;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    String title = widget.document["title"] == null
+        ? "supp baby"
+        : widget.document["title"];
+    _titleController = TextEditingController(text: title);
+    _descriptionController =
+        TextEditingController(text: widget.document["description"]);
+    type = widget.document["task"];
+    category = widget.document["category"];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,16 +52,32 @@ class _AddTodoPageState extends State<AddTodoPage> {
             SizedBox(
               height: 30,
             ),
-            IconButton(
-              onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (builder) => HomePage()));
-              },
-              icon: Icon(
-                CupertinoIcons.arrow_left,
-                color: Colors.white,
-                size: 28,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(
+                    CupertinoIcons.arrow_left,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      edit = !edit;
+                    });
+                  },
+                  icon: Icon(
+                    Icons.edit,
+                    color: edit ? Colors.green : Colors.white,
+                    size: 28,
+                  ),
+                ),
+              ],
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
@@ -52,7 +85,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Create",
+                    edit ? "Editing" : "View",
                     style: TextStyle(
                       fontSize: 33,
                       color: Colors.white,
@@ -64,7 +97,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
                     height: 8,
                   ),
                   Text(
-                    "New Todo",
+                    "Your Todo",
                     style: TextStyle(
                       fontSize: 33,
                       color: Colors.white,
@@ -136,7 +169,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
                   SizedBox(
                     height: 30,
                   ),
-                  button(),
+                  edit ? button() : Container(),
                   SizedBox(
                     height: 30,
                   ),
@@ -152,7 +185,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
   Widget button() {
     return InkWell(
       onTap: () {
-        FirebaseFirestore.instance.collection("Todo").add({
+        FirebaseFirestore.instance.collection("Todo").doc(widget.id).update({
           "title": _titleController.text,
           "task": type,
           "description": _descriptionController.text,
@@ -173,7 +206,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
         ),
         child: Center(
           child: Text(
-            "Add Todo",
+            "Upadte Todo",
             style: TextStyle(
                 color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
@@ -192,6 +225,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
       ),
       child: TextFormField(
         controller: _descriptionController,
+        enabled: edit,
         style: TextStyle(color: Colors.white, fontSize: 17),
         maxLines: null,
         decoration: InputDecoration(
@@ -211,11 +245,13 @@ class _AddTodoPageState extends State<AddTodoPage> {
 
   Widget taskSelect(String label, int color) {
     return InkWell(
-      onTap: () {
-        setState(() {
-          type = label;
-        });
-      },
+      onTap: edit
+          ? () {
+              setState(() {
+                type = label;
+              });
+            }
+          : null,
       child: Chip(
         backgroundColor: type == label ? Colors.white : Color(color),
         shape: RoundedRectangleBorder(
@@ -238,11 +274,13 @@ class _AddTodoPageState extends State<AddTodoPage> {
 
   Widget categorySelect(String label, int color) {
     return InkWell(
-      onTap: () {
-        setState(() {
-          category = label;
-        });
-      },
+      onTap: edit
+          ? () {
+              setState(() {
+                category = label;
+              });
+            }
+          : null,
       child: Chip(
         backgroundColor: category == label ? Colors.white : Color(color),
         shape: RoundedRectangleBorder(
@@ -269,20 +307,23 @@ class _AddTodoPageState extends State<AddTodoPage> {
       width: MediaQuery.of(context).size.width,
       decoration: BoxDecoration(
           color: Color(0xff2a2e3d), borderRadius: BorderRadius.circular(15)),
-      child: TextFormField(
-        controller: _titleController,
-        style: TextStyle(color: Colors.white, fontSize: 17),
-        decoration: InputDecoration(
-            border: InputBorder.none,
-            hintText: "Task Title",
-            hintStyle: TextStyle(
-              color: Colors.grey,
-              fontSize: 17,
-            ),
-            contentPadding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-            )),
+      child: Center(
+        child: TextFormField(
+          controller: _titleController,
+          enabled: edit,
+          style: TextStyle(color: Colors.white, fontSize: 17),
+          decoration: InputDecoration(
+              border: InputBorder.none,
+              hintText: "Task Title",
+              hintStyle: TextStyle(
+                color: Colors.grey,
+                fontSize: 17,
+              ),
+              contentPadding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+              )),
+        ),
       ),
     );
   }

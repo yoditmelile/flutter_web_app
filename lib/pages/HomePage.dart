@@ -7,6 +7,7 @@ import 'package:flutter_web_app/Custom/TodoCard.dart';
 import 'package:flutter_web_app/Service/Auth_Service.dart';
 import 'package:flutter_web_app/pages/AddTodo.dart';
 import 'package:flutter_web_app/pages/SignUpPage.dart';
+import 'package:flutter_web_app/pages/view_data.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -126,15 +127,26 @@ class _HomePageState extends State<HomePage> {
                         iconData = Icons.today_outlined;
                         iconColor = const Color.fromARGB(255, 5, 65, 7);
                     }
-                    return TodoCard(
-                        title: document["title"] == null
-                            ? "Supp baby"
-                            : document["title"],
-                        iconData: iconData,
-                        iconColor: iconColor,
-                        time: "10 AM",
-                        check: true,
-                        iconBgColor: Colors.white);
+                    return InkWell(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (builder) => ViewData(
+                                      document: document,
+                                      id: snapshot.data!.docs[index].id,
+                                    )));
+                      },
+                      child: TodoCard(
+                          title: document["title"] == null
+                              ? "Supp baby"
+                              : document["title"],
+                          iconData: iconData,
+                          iconColor: iconColor,
+                          time: "10 AM",
+                          check: true,
+                          iconBgColor: Colors.white),
+                    );
                   });
             }));
   }
